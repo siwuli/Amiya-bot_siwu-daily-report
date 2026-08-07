@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "report_enabled": {
+      "title": "启用插件",
+      "description": "是否启用群聊日报。关闭后停止记录消息与生成报告",
+      "type": "boolean",
+      "default": true
+    },
+    "report_time": {
+      "title": "生成时间",
+      "description": "每天生成日报的时间（HH:MM，24 小时制），如 23:00",
+      "type": "string",
+      "default": "23:00"
+    },
+    "report_llm_api_key": {
+      "title": "LLM API Key",
+      "description": "可选。用于生成热门话题/群友称号/群圣经。留空则使用本地规则生成；建议填 DeepSeek 或任意 OpenAI 兼容服务的 Key",
+      "type": "string",
+      "default": ""
+    },
+    "report_llm_base_url": {
+      "title": "LLM API 地址",
+      "description": "OpenAI 兼容接口 base_url，如 https://api.deepseek.com",
+      "type": "string",
+      "default": "https://api.deepseek.com"
+    },
+    "report_llm_model": {
+      "title": "LLM 模型",
+      "description": "模型名，如 deepseek-chat",
+      "type": "string",
+      "default": "deepseek-chat"
+    },
+    "report_topics_count": {
+      "title": "热门话题数量",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 5
+    },
+    "report_titles_count": {
+      "title": "群友称号数量",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 6
+    },
+    "report_bible_count": {
+      "title": "群圣经条数",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 3
+    },
+    "report_max_transcript": {
+      "title": "对话样本上限",
+      "description": "传给 LLM 的对话采样条数上限，超长自动均匀采样并保留结尾，控制 token 消耗",
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 500,
+      "default": 150
+    },
+    "report_retention_days": {
+      "title": "历史保留天数",
+      "description": "超过该天数的消息数据自动清理，减小数据库体积",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 90,
+      "default": 7
+    },
+    "report_debug_log": {
+      "title": "调试日志",
+      "description": "控制台输出日报记录/生成/发送等日志",
+      "type": "boolean",
+      "default": true
+    }
+  }
+}
