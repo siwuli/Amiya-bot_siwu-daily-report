@@ -2,16 +2,29 @@
 """
 打包脚本：把 siwu-daily-report 插件打包为 zip。
 
+版本号自动读取自 main.py 中的 version=，输出 plugins/siwu-daily-report-<version>.zip。
 用法（在项目根目录下执行）：
     python pluginsServer/siwu-daily-report-1_0/build.py
 """
 
 import os
+import re
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_ZIP = os.path.join(ROOT, 'plugins', 'siwu-daily-report-1.0.zip')
+
+
+def plugin_version() -> str:
+    """从 main.py 中读取插件版本号（version='x.y.z'）"""
+    with open(os.path.join(PLUGIN_DIR, 'main.py'), encoding='utf-8') as f:
+        src = f.read()
+    m = re.search(r"version\s*=\s*['\"]([^'\"]+)['\"]", src)
+    return m.group(1) if m else '1.0.0'
+
+
+def output_zip() -> str:
+    return os.path.join(ROOT, 'plugins', f'siwu-daily-report-{plugin_version()}.zip')
 
 
 def _add_dir(zf: zipfile.ZipFile, src_dir: str):
@@ -27,9 +40,10 @@ def _add_dir(zf: zipfile.ZipFile, src_dir: str):
 
 
 def build():
-    os.makedirs(os.path.dirname(OUTPUT_ZIP), exist_ok=True)
+    output = output_zip()
+    os.makedirs(os.path.dirname(output), exist_ok=True)
 
-    with zipfile.ZipFile(OUTPUT_ZIP, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as zf:
         for f in os.listdir(PLUGIN_DIR):
             if f == os.path.basename(__file__) or f.startswith('__pycache__'):
                 continue
@@ -40,8 +54,8 @@ def build():
             elif os.path.isdir(full) and f == 'report':
                 _add_dir(zf, full)
 
-    print(f'\ncreated: {OUTPUT_ZIP} ({os.path.getsize(OUTPUT_ZIP)} bytes)')
-    return OUTPUT_ZIP
+    print(f'\ncreated: {output} ({os.path.getsize(output)} bytes)')
+    return output
 
 
 if __name__ == '__main__':

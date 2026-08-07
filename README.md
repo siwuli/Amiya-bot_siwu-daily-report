@@ -77,11 +77,13 @@
 
 ## 安装方法
 
-1. 把 `siwu-daily-report-1.0.zip` 放到 `plugins/` 目录下
+1. 把 `siwu-daily-report-<版本号>.zip`（如 `siwu-daily-report-1.1.0.zip`）放到 `plugins/` 目录下
 2. 重启兔兔（或在控制台重载插件）即可自动加载
 3. 在控制台为需要日报的群启用本插件
 
 ### 修改后重新打包
+
+打包脚本会自动读取 `main.py` 中的版本号作为 zip 文件名：
 
 ```bash
 python pluginsServer/siwu-daily-report-1_0/build.py
