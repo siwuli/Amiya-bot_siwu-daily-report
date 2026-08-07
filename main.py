@@ -35,10 +35,10 @@ curr_dir = os.path.dirname(os.path.abspath(__file__))
 
 bot = AmiyaBotPluginInstance(
     name='群聊日报',
-    version='1.0.0',
+    version='1.1.0',
     plugin_id='siwu-daily-report',
     plugin_type='functional',
-    description='每天定时（默认 23:00）自动生成当日群聊统计、热门话题、群友称号与群圣经报告',
+    description='每天定时（默认 23:00）自动生成当日群聊统计、热门话题、群友称号与群圣经报告；群内发送「兔兔今日日报」可手动触发',
     document=f'{curr_dir}/README.md',
     global_config_default=f'{curr_dir}/config_default.yaml',
     global_config_schema=f'{curr_dir}/jsonSchema.json',
@@ -88,6 +88,18 @@ def _report_time_minutes() -> tuple:
         return (int(hh), int(mm))
     except Exception:
         return (23, 0)
+
+
+def _group_allowed(group_id: str) -> bool:
+    """群聊白名单/黑名单过滤：黑名单优先；白名单为空时放行所有群"""
+    gid = str(group_id or '')
+    blacklist = [str(g) for g in (_cfg('report_group_blacklist', []) or [])]
+    if gid in blacklist:
+        return False
+    whitelist = [str(g) for g in (_cfg('report_group_whitelist', []) or [])]
+    if whitelist and gid not in whitelist:
+        return False
+    return True
 
 
 def _now_str(now: datetime) -> str:
@@ -196,6 +208,36 @@ async def _send_report(bot_id: str, group_id: str, text: str):
         log.warning(f'[日报] 发送失败 group={group_id}: {e}')
 
 
+@bot.on_message(keywords=['今日日报'], check_prefix=['兔兔'], level=5)
+async def _manual_report(data: Message):
+    """手动触发：在群里发送「兔兔今日日报」立即生成并推送本群当日日报"""
+    if not _report_enabled():
+        return
+    if getattr(data, 'is_direct', False):
+        return
+
+    bot_id = str(getattr(getattr(data, 'instance', None), 'appid', '') or '')
+    group_id = str(data.channel_id or '')
+    if not group_id:
+        return
+
+    # 忽略机器人自己转发的消息
+    user_id = str(getattr(data, 'user_id', '') or '')
+    if user_id == bot_id or user_id == 'bot':
+        return
+
+    if not _group_allowed(group_id):
+        return
+
+    now = datetime.now()
+    msg_date = now.strftime('%Y-%m-%d')
+    if not store.load_day(bot_id, group_id, msg_date):
+        await _send_report(bot_id, group_id, '今天还没有任何消息记录，无法生成日报～')
+        return
+
+    await _report_group(bot_id, group_id, msg_date, now)
+
+
 @bot.timed_task(each=60, sub_tag='daily_report')
 async def _report_tick(_):
     if not _report_enabled():
@@ -224,6 +266,7 @@ async def _report_tick(_):
         log.warning(f'[日报] 历史清理失败: {e}')
 
     groups = store.groups_with_messages(msg_date)
+    groups = [(b, g) for b, g in groups if _group_allowed(g)]
     _report_log(f'到点触发日报 date={msg_date} groups={len(groups)}', force=True)
     if not groups:
         return

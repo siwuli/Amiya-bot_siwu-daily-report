@@ -15,6 +15,24 @@
       "type": "string",
       "default": "23:00"
     },
+    "report_group_whitelist": {
+      "title": "群聊白名单",
+      "description": "只给这些群发送日报（填写群号，多个用逗号分隔）。留空表示不限制，默认所有群都发送",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "report_group_blacklist": {
+      "title": "群聊黑名单",
+      "description": "这些群不发送日报。黑名单优先于白名单",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
     "report_llm_api_key": {
       "title": "LLM API Key",
       "description": "可选。用于生成热门话题/群友称号/群圣经。留空则使用本地规则生成；建议填 DeepSeek 或任意 OpenAI 兼容服务的 Key",
