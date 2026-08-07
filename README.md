@@ -95,3 +95,7 @@ python pluginsServer/siwu-daily-report-1_0/build.py
 |---|---|
 | `1.1.0` | 新增群聊白名单/黑名单（留空默认所有群发送）；新增手动触发指令「兔兔今日日报」 |
 | `1.0.0` | 初始版本：每日定时（默认 23:00）生成群聊日报；本地统计 + 可选 LLM 分析，未配置自动降级；SQLite 记录、按保留天数自动清理 |
+
+## 项目地址
+
+<https://github.com/siwuli/Amiya-bot_siwu-daily-report>
