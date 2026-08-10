@@ -29,13 +29,14 @@ from .report.builder import (
     local_titles,
     local_bible,
     render,
+    render_forward,
 )
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 
 bot = AmiyaBotPluginInstance(
     name='群聊日报',
-    version='1.1.1',
+    version='1.2.1',
     plugin_id='siwu-daily-report',
     plugin_type='functional',
     description='每天定时（默认 23:00）自动生成当日群聊统计、热门话题、群友称号与群圣经报告；群内发送「兔兔今日日报」可手动触发',
@@ -193,19 +194,66 @@ async def _report_group(bot_id: str, group_id: str, msg_date: str, now: datetime
         }
 
     report_text = render(stats, result, _now_str(now))
-    await _send_report(bot_id, group_id, report_text)
+    await _send_report(bot_id, group_id, report_text, stats, result, _now_str(now))
     _report_log(f'日报已生成 group={group_id} msgs={stats["total"]} len={len(report_text)}', force=True)
 
 
-async def _send_report(bot_id: str, group_id: str, text: str):
+async def _send_report(bot_id: str, group_id: str, text: str, stats=None, result=None, date_str=''):
     instance = _resolve_instance(bot_id)
     if instance is None:
         log.warning(f'[日报] 找不到可用的 bot 实例，跳过 group={group_id}')
         return
     try:
+        # 优先以 QQ 聊天记录合并转发形式发送，降低超长消息对观感的影响
+        if result and bool(_cfg('report_forward_enabled', True)):
+            nodes = render_forward(stats, result, date_str)
+            if await _send_forward(instance, group_id, nodes):
+                return
         await instance.send_message(Chain().text(text), channel_id=group_id)
     except Exception as e:
         log.warning(f'[日报] 发送失败 group={group_id}: {e}')
+
+
+async def _send_forward(instance, group_id: str, nodes: list) -> bool:
+    """通过 OneBot v11 /send_group_forward_msg 发送合并转发（聊天记录）"""
+    try:
+        # AmiyaBot 容器本身没有 api，api 在适配器实例（instance.instance）上
+        inst = getattr(instance, 'instance', None) or instance
+        api = getattr(inst, 'api', None)
+        if api is None or not hasattr(api, 'post'):
+            log.warning('[日报] 合并转发不可用：未找到 OneBot API，回退普通文本')
+            return False
+        try:
+            uin = int(getattr(instance, 'appid', '0') or '0')
+        except (TypeError, ValueError):
+            uin = 0
+        messages = [
+            {
+                'type': 'node',
+                'data': {
+                    'name': n['nickname'],
+                    'uin': uin,
+                    'content': [{'type': 'text', 'data': {'text': n['text']}}],
+                },
+            }
+            for n in nodes
+        ]
+        resp = await api.post(
+            '/send_group_forward_msg',
+            {'group_id': int(group_id), 'messages': messages},
+        )
+        if resp is None or getattr(resp, 'error', None) is not None:
+            return False
+        status = getattr(getattr(resp, 'response', None), 'status', None)
+        if status and status >= 400:
+            return False
+        data = resp.json
+        if isinstance(data, dict) and data.get('status') == 'failed':
+            return False
+        return True
+    except Exception as e:
+        log.warning(f'[日报] 合并转发发送失败，回退普通文本: {e}')
+        return False
 
 
 @bot.on_message(keywords=['今日日报'], check_prefix=['兔兔'], level=5)

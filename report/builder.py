@@ -387,3 +387,57 @@ def render(stats, result, date_str):
         if b.get('comment'):
             lines.append(f'   {b["comment"]}')
     return '\n'.join(lines)
+
+
+# ---------------- 合并转发渲染 ----------------
+
+def render_forward(stats, result, date_str, nickname='兔兔'):
+    """把日报拆成多条消息，用于 QQ 聊天记录合并转发。
+
+    返回 node 列表：[{'nickname': str, 'text': str}, ...]
+    每条 node 以 nickname 名义作为独立气泡展示，避免超长单条消息。
+    """
+    hour = stats['most_active_hour']
+
+    def node(text):
+        return {'nickname': nickname, 'text': text}
+
+    nodes = [
+        node('🎯 群聊日常分析报告\n' f'📅 {date_str}'),
+        node(
+            '📊 基础统计\n'
+            f'• 消息总数: {stats["total"]}\n'
+            f'• 参与人数: {stats["participants"]}\n'
+            f'• 总字符数: {stats["total_chars"]}\n'
+            f'• 表情数量: {stats["emoji_total"]}\n'
+            f'• 最活跃时段: {hour:02d}:00-{hour + 1:02d}:00'
+        ),
+    ]
+
+    if result.get('topics'):
+        nodes.append(node('💬 热门话题'))
+        for i, t in enumerate(result['topics'], 1):
+            text = f'{i}. {t["title"]}'
+            if t.get('participants'):
+                text += f'\n参与者: {"、".join(t["participants"])}'
+            if t.get('summary'):
+                text += f'\n{t["summary"]}'
+            nodes.append(node(text))
+
+    if result.get('titles'):
+        nodes.append(node('🏆 群友称号'))
+        for t in result['titles']:
+            text = f'{t["name"]} - {t["title"]} ({t.get("mbti", "")})'
+            if t.get('reason'):
+                text += f'\n{t["reason"]}'
+            nodes.append(node(text))
+
+    if result.get('bible'):
+        nodes.append(node('💬 群圣经'))
+        for i, b in enumerate(result['bible'], 1):
+            text = f'{i}. "{b["quote"]}" —— {b["speaker"]}'
+            if b.get('comment'):
+                text += f'\n{b["comment"]}'
+            nodes.append(node(text))
+
+    return nodes

@@ -27,6 +27,12 @@ def output_zip() -> str:
     return os.path.join(ROOT, 'plugins', f'siwu-daily-report-{plugin_version()}.zip')
 
 
+EXCLUDE_FILES = {
+    'build.py',
+    'debug.log',
+}
+
+
 def _add_dir(zf: zipfile.ZipFile, src_dir: str):
     for root, dirs, files in os.walk(src_dir):
         dirs[:] = [d for d in dirs if d != '__pycache__']
@@ -45,7 +51,7 @@ def build():
 
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as zf:
         for f in os.listdir(PLUGIN_DIR):
-            if f == os.path.basename(__file__) or f.startswith('__pycache__'):
+            if f in EXCLUDE_FILES or f.startswith('__pycache__'):
                 continue
             full = os.path.join(PLUGIN_DIR, f)
             if os.path.isfile(full):

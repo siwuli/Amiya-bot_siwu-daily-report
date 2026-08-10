@@ -88,6 +88,12 @@
       "maximum": 90,
       "default": 7
     },
+    "report_forward_enabled": {
+      "title": "聊天记录转发",
+      "description": "日报以 QQ「聊天记录」合并转发形式发送（拆成多条气泡，避免超长单条消息）。关闭后回退为普通单条文本消息",
+      "type": "boolean",
+      "default": true
+    },
     "report_debug_log": {
       "title": "调试日志",
       "description": "控制台输出日报记录/生成/发送等日志",

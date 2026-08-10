@@ -2,7 +2,7 @@
 
 每天定时（默认 **23:00**，可在控制台修改）自动生成一份当天的群聊日常分析报告并发到群里，包含基础统计、热门话题、群友称号和群圣经。
 
-> 插件 id：`siwu-daily-report`　当前版本：`1.1.1`
+> 插件 id：`siwu-daily-report`　当前版本：`1.2.1`
 
 ## 报告长什么样
 
@@ -57,6 +57,7 @@
 | `report_titles_count` | 群友称号数量 | `6` |
 | `report_bible_count` | 群圣经条数 | `3` |
 | `report_max_transcript` | 传给 LLM 的对话样本上限 | `150` |
+| `report_forward_enabled` | 以 QQ「聊天记录」合并转发形式发送日报（关闭则普通单条文本） | `true` |
 | `report_retention_days` | 历史消息保留天数（自动清理） | `7` |
 | `report_debug_log` | 调试日志 | `true` |
 
@@ -77,7 +78,7 @@
 
 ## 安装方法
 
-1. 把 `siwu-daily-report-<版本号>.zip`（如 `siwu-daily-report-1.1.0.zip`）放到 `plugins/` 目录下
+1. 把 `siwu-daily-report-<版本号>.zip`（如 `siwu-daily-report-1.2.0.zip`）放到 `plugins/` 目录下
 2. 重启兔兔（或在控制台重载插件）即可自动加载
 3. 在控制台为需要日报的群启用本插件
 
@@ -95,6 +96,8 @@ python pluginsServer/siwu-daily-report-1_0/build.py
 
 | 版本 | 更新内容 |
 |---|---|
+| `1.2.1` | 修复合并转发不生效的问题（此前拿到的 bot 实例缺少 `api`，合并转发静默回退普通文本；现改为从适配器实例获取 `api`） |
+| `1.2.0` | 日报改为 QQ「聊天记录」合并转发形式发送（拆分多条气泡，避免超长单条消息），可通过 `report_forward_enabled` 开关控制，发送失败自动回退普通文本 |
 | `1.1.1` | 修复小米 `mimo-v2.5-pro` 等推理模型下日报回退本地公式的问题（`max_tokens` 提升至 8000，为 `reasoning_content` 预留空间）；对话样本上限默认逻辑修正（此前硬编码 150 条，现完整使用采样样本），上限放宽至 2000 |
 | `1.1.0` | 新增群聊白名单/黑名单（留空默认所有群发送）；新增手动触发指令「兔兔今日日报」 |
 | `1.0.0` | 初始版本：每日定时（默认 23:00）生成群聊日报；本地统计 + 可选 LLM 分析，未配置自动降级；SQLite 记录、按保留天数自动清理 |
