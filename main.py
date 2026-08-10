@@ -35,7 +35,7 @@ curr_dir = os.path.dirname(os.path.abspath(__file__))
 
 bot = AmiyaBotPluginInstance(
     name='群聊日报',
-    version='1.1.0',
+    version='1.1.1',
     plugin_id='siwu-daily-report',
     plugin_type='functional',
     description='每天定时（默认 23:00）自动生成当日群聊统计、热门话题、群友称号与群圣经报告；群内发送「兔兔今日日报」可手动触发',
@@ -177,7 +177,7 @@ async def _report_group(bot_id: str, group_id: str, msg_date: str, now: datetime
                 titles_count,
                 bible_count,
             )
-            data = await llm.chat_json([{'role': 'user', 'content': prompt}], max_tokens=1600)
+            data = await llm.chat_json([{'role': 'user', 'content': prompt}], max_tokens=8000)
             if data:
                 result = normalize_result(
                     data, stats, messages, topics_count, titles_count, bible_count

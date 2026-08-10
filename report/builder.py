@@ -256,7 +256,7 @@ def build_llm_prompt(stats, messages, candidates, date_str, topics_count, titles
     lines.extend(_user_stat_lines(stats))
     lines.append('')
     lines.append('<对话样本（已截断，仅作话题参考）>')
-    for m in messages[:150]:
+    for m in messages:
         content = re.sub(r'\s+', ' ', str(m.get('content') or ''))[:60]
         if content:
             lines.append(f'{m.get("nickname") or "群友"}: {content}')

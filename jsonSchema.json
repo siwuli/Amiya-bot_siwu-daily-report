@@ -77,7 +77,7 @@
       "description": "传给 LLM 的对话采样条数上限，超长自动均匀采样并保留结尾，控制 token 消耗",
       "type": "integer",
       "minimum": 10,
-      "maximum": 500,
+      "maximum": 2000,
       "default": 150
     },
     "report_retention_days": {
